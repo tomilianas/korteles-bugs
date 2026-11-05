@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Kortelės Bugs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0907;
+    --panel: #17110c;
+    --panel-2: #1f1710;
+    --line: #3a2c1c;
+    --gold: #d9b46a;
+    --gold-hi: #f2d79b;
+    --text: #eadfca;
+    --muted: #9c8b72;
+    --new: #a3201b;      /* blood red */
+    --fixed: #c99a3c;
+    --solved: #3f8a4f;
+    --wontfix: #6b6258;
+    --danger: #a3201b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 17px/1.45 "EB Garamond", Georgia, serif;
+    background:
+      radial-gradient(1200px 500px at 50% -200px, #2a1c10 0%, transparent 70%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 {
+    font-family: Cinzel, serif; font-weight: 700; margin: 0; font-size: 34px; letter-spacing: .04em;
+    background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #9b7334);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { color: var(--muted); font-style: italic; margin-top: 2px; }
+  button, .btn {
+    font: 600 14px/1 Cinzel, serif; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--gold-hi); background: var(--panel-2); border: 1px solid var(--gold);
+    border-radius: 6px; padding: 10px 14px; cursor: pointer; min-height: 40px;
+  }
+  button:hover { background: #2a1f14; }
+  button:disabled { opacity: .5; cursor: default; }
+  button.danger { border-color: var(--danger); color: #f0b5a8; }
+  button.danger:hover { background: #2b1110; }
+  button.ghost { border-color: var(--line); color: var(--muted); }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .chip { border-color: var(--line); color: var(--muted); }
+  .chip.on { border-color: var(--gold); color: var(--gold-hi); background: #2a1f14; }
+  .chip .n { opacity: .75; margin-left: 4px; }
+  input[type=search] {
+    flex: 1 1 200px; min-width: 0; font: inherit; color: var(--text); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; min-height: 40px;
+  }
+  input[type=search]:focus { outline: none; border-color: var(--gold); }
+  .msg { color: var(--muted); text-align: center; padding: 40px 0; font-style: italic; }
+  .msg.err { color: #f0b5a8; font-style: normal; }
+  .bug {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .bug.open { border-color: #6a5030; }
+  .top { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .id { font-family: Cinzel, serif; font-weight: 700; color: var(--gold); font-size: 18px; }
+  .pill {
+    font: 600 12px/1 Cinzel, serif; letter-spacing: .06em; text-transform: uppercase;
+    padding: 5px 8px; border-radius: 4px; color: #fff;
+  }
+  .pill.new { background: var(--new); }
+  .pill.fixed { background: var(--fixed); color: #1a1208; }
+  .pill.solved { background: var(--solved); }
+  .pill.wontfix { background: var(--wontfix); }
+  .meta { color: var(--muted); font-size: 15px; }
+  .desc { margin: 10px 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 18px; }
+  .note { color: var(--gold-hi); font-style: italic; margin: 0 0 8px; overflow-wrap: anywhere; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 15px; }
+  .grid dt { color: var(--muted); }
+  .grid dd { margin: 0; overflow-wrap: anywhere; }
+  h3 { font: 700 14px/1 Cinzel, serif; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); margin: 16px 0 8px; }
+  ol.chron { list-style: none; margin: 0; padding: 10px 12px 10px 40px; background: #0f0b08; border: 1px solid var(--line); border-radius: 6px; font-size: 15px; max-height: 420px; overflow: auto; }
+  ol.chron li { white-space: pre-wrap; overflow-wrap: anywhere; }
+  ol.chron li.turn { color: var(--gold-hi); font-weight: 600; margin-top: 6px; list-style: none; margin-left: -28px; }
+  .cmd { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #0f0b08; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; color: var(--text); }
+  footer { color: var(--muted); font-size: 14px; text-align: center; margin-top: 28px; }
+  @media (max-width: 520px) {
+    h1 { font-size: 28px; }
+    .grid { gap: 4px 10px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Kortelės Bugs</h1>
+      <div class="sub">Reports sent from the game's "Report a bug" button</div>
+    </div>
+    <button id="refresh" type="button">Refresh</button>
+  </header>
+
+  <div class="bar" id="chips"></div>
+  <div class="bar"><input id="q" type="search" placeholder="Search description, player, device…" aria-label="Search"></div>
+
+  <div id="list"><div class="msg">Loading…</div></div>
+  <footer>Status changes are made by Claude (tools/bugs.mjs). Delete removes a report from the database for good.</footer>
+</div>
+
+<script>
+const URL_BASE = "https://zunmxieygxcewrpetzoz.supabase.co/rest/v1/bugs";
+// The publishable key: public by design, it ships inside the game too.
+const KEY = "sb_publishable_Pu5cK2LIreMc9LcucMbloQ_ZZXR7u1c";
+const HEADERS = { apikey: KEY };
+const LIST_COLS = [
+  "id", "created_at", "status", "description", "build", "rules", "platform", "player_name", "note", "fixed_at",
+  "where:context->>where", "kind:context->fight->>kind", "mode:context->fight->>mode",
+  "turn:context->fight->>turn", "rival:context->fight->>rival_name", "model:context->device->>model",
+].join(",");
+// every column the page may read (user_id is not readable with the public key)
+const FULL_COLS = "id,created_at,status,description,context,build,rules,platform,player_name,client_id,note,fixed_at";
+const STATUSES =["all", "new", "fixed", "solved", "wontfix"];
+
+let bugs = [];
+let filter = "all";
+const open = new Set();
+const full = new Map();   // id -> full row, fetched on demand
+
+const $ = (s) => document.querySelector(s);
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) e.append(k);   // strings become text nodes: never HTML
+  return e;
+}
+function when(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+async function load() {
+  $("#refresh").disabled = true;
+  try {
+    const r = await fetch(`${URL_BASE}?select=${LIST_COLS}&order=created_at.desc&limit=500`, { headers: HEADERS });
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    bugs = await r.json();
+    render();
+  } catch (e) {
+    $("#list").replaceChildren(el("div", { class: "msg err" }, "Could not load the bugs: " + e.message));
+  } finally {
+    $("#refresh").disabled = false;
+  }
+}
+
+function renderChips() {
+  const counts = { all: bugs.length };
+  for (const b of bugs) counts[b.status] = (counts[b.status] || 0) + 1;
+  $("#chips").replaceChildren(...STATUSES.map((s) =>
+    el("button", { type: "button", class: "chip" + (filter === s ? " on" : ""), onclick: () => { filter = s; render(); } },
+      s, el("span", { class: "n" }, String(counts[s] || 0)))));
+}
+
+function render() {
+  renderChips();
+  const q = $("#q").value.trim().toLowerCase();
+  const shown = bugs.filter((b) => (filter === "all" || b.status === filter) &&
+    (!q || [b.description, b.player_name, b.platform, b.model, b.mode, b.kind, b.note, "#" + b.id]
+      .some((x) => (x || "").toLowerCase().includes(q))));
+  if (!shown.length) {
+    $("#list").replaceChildren(el("div", { class: "msg" }, bugs.length ? "No reports match." : "No bug reports yet."));
+    return;
+  }
+  $("#list").replaceChildren(...shown.map(card));
+}
+
+function card(b) {
+  const isOpen = open.has(b.id);
+  const where = b.where === "fight"
+    ? `Fight · ${b.kind || "?"} ${b.mode || ""}${b.turn ? " · turn " + b.turn : ""}${b.rival ? " vs " + b.rival : ""}`
+    : "Main menu";
+  const node = el("article", { class: "bug" + (isOpen ? " open" : "") },
+    el("div", { class: "top" },
+      el("span", { class: "id" }, "#" + b.id),
+      el("span", { class: "pill " + b.status }, b.status),
+      el("span", { class: "meta" }, when(b.created_at))),
+    el("div", { class: "meta" }, [where, b.player_name || "anonymous", [b.platform, b.model].filter(Boolean).join(" · ")].filter(Boolean).join("  —  ")),
+    el("p", { class: "desc" }, b.description),
+    b.note ? el("p", { class: "note" }, `${b.status}${b.fixed_at ? " " + when(b.fixed_at) : ""}: ${b.note}`) : null,
+    el("div", { class: "actions" },
+      el("button", { type: "button", class: "ghost", onclick: () => toggle(b.id) }, isOpen ? "Hide details" : "Details"),
+      el("button", { type: "button", class: "danger", onclick: (e) => remove(b, e.currentTarget) }, "Delete")));
+  if (isOpen) node.append(details(b));
+  return node;
+}
+
+async function toggle(id) {
+  if (open.has(id)) { open.delete(id); render(); return; }
+  open.add(id);
+  render();
+  if (!full.has(id)) {
+    try {
+      const r = await fetch(`${URL_BASE}?id=eq.${id}&select=${FULL_COLS}`, { headers: HEADERS });
+      if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+      const rows = await r.json();
+      full.set(id, rows[0] || null);
+    } catch (e) {
+      full.set(id, { error: e.message });
+    }
+    render();
+  }
+}
+
+function dl(label, value) {
+  return value == null || value === "" ? [] : [el("dt", {}, label), el("dd", {}, String(value))];
+}
+
+function details(b) {
+  const box = el("div", { class: "details" });
+  const row = full.get(b.id);
+  if (row === undefined) { box.append(el("div", { class: "meta" }, "Loading the report…")); return box; }
+  if (row === null) { box.append(el("div", { class: "msg err" }, "This report is gone.")); return box; }
+  if (row.error) { box.append(el("div", { class: "msg err" }, "Could not load: " + row.error)); return box; }
+  const c = row.context || {};
+  const app = c.app || {}, dev = c.device || {}, pl = c.player || {}, f = c.fight || null;
+
+  box.append(el("dl", { class: "grid" },
+    ...dl("Build", row.build), ...dl("Rules", row.rules), ...dl("Engine", app.engine),
+    ...dl("Device", [dev.os, dev.os_version, dev.model].filter(Boolean).join(" · ")),
+    ...dl("Screen", [dev.screen, dev.window && "window " + dev.window].filter(Boolean).join(" · ")),
+    ...dl("Renderer", dev.renderer), ...dl("Locale", dev.locale),
+    ...dl("Player", [pl.name || row.player_name, pl.account ? "account" : "no account", pl.guest ? "guest" : null].filter(Boolean).join(" · ")),
+    ...dl("Client id", row.client_id)));
+
+  if (f) {
+    const last = c.last ? " (last fight of the run)" : "";
+    box.append(el("h3", {}, "Fight" + last));
+    box.append(el("dl", { class: "grid" },
+      ...dl("Kind", f.kind), ...dl("Mode", f.mode), ...dl("Seat", f.seat), ...dl("Rival", f.rival_name),
+      ...dl("AI", f.ai), ...dl("Turn", f.turn), ...dl("Phase", f.phase), ...dl("Ended", f.ended ? "yes" : "no"),
+      ...dl("Match id", f.match_id),
+      ...dl("Replay data", [f.start ? `start ${(f.start.length / 1024).toFixed(1)} KB` : "no start state",
+        f.actions ? `moves ${(f.actions.length / 1024).toFixed(1)} KB` : null].filter(Boolean).join(" · "))));
+    const chron = Array.isArray(f.chronicle) ? f.chronicle : [];
+    if (chron.length) {
+      box.append(el("h3", {}, `Chronicle (${chron.length})`));
+      box.append(el("ol", { class: "chron" }, ...chron.map((line) => {
+        const s = String(line);
+        return el("li", { class: /^TURN\b/.test(s) ? "turn" : "" }, s);
+      })));
+    }
+  } else {
+    box.append(el("h3", {}, "Fight"), el("div", { class: "meta" }, "No fight attached (sent from the menu before any fight)."));
+  }
+
+  box.append(el("h3", {}, "Reproduce"));
+  box.append(el("div", { class: "cmd" }, `node tools/bugs.mjs show ${row.id} --out=tests/out/bugs`));
+  box.append(el("div", { class: "actions", style: "margin-top:10px" },
+    el("button", { type: "button", class: "ghost", onclick: () => download(row) }, "Download JSON")));
+  return box;
+}
+
+function download(row) {
+  const blob = new Blob([JSON.stringify(row, null, 2)], { type: "application/json" });
+  const a = el("a", { href: URL.createObjectURL(blob), download: `bug_${row.id}.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function remove(b, btn) {
+  if (!confirm(`Delete bug #${b.id} from the database for good?\n\n"${(b.description || "").slice(0, 120)}"`)) return;
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${URL_BASE}?id=eq.${b.id}`, { method: "DELETE", headers: { ...HEADERS, Prefer: "return=representation" } });
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    const gone = await r.json();
+    if (!gone.length) throw new Error("nothing was deleted");
+    bugs = bugs.filter((x) => x.id !== b.id);
+    open.delete(b.id); full.delete(b.id);
+    render();
+  } catch (e) {
+    btn.disabled = false;
+    alert("Could not delete: " + e.message);
+  }
+}
+
+$("#refresh").addEventListener("click", load);
+$("#q").addEventListener("input", render);
+// a link like .../korteles-bugs/#12 opens that bug's details
+load().then(() => {
+  const id = Number(location.hash.slice(1));
+  if (id && bugs.some((b) => b.id === id)) toggle(id);
+});
+</script>
+</body>
+</html>

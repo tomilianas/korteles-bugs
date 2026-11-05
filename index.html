@@ -282,7 +282,8 @@ async function remove(b, btn) {
   if (!confirm(`Delete bug #${b.id} from the database for good?\n\n"${(b.description || "").slice(0, 120)}"`)) return;
   btn.disabled = true;
   try {
-    const r = await fetch(`${URL_BASE}?id=eq.${b.id}`, { method: "DELETE", headers: { ...HEADERS, Prefer: "return=representation" } });
+    // select=id: the deleted row comes back with only its id (user_id is not readable)
+    const r = await fetch(`${URL_BASE}?id=eq.${b.id}&select=id`, { method: "DELETE", headers: { ...HEADERS, Prefer: "return=representation" } });
     if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
     const gone = await r.json();
     if (!gone.length) throw new Error("nothing was deleted");
